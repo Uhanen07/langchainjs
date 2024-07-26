@@ -37,10 +37,21 @@ export class XMLAgentOutputParser extends AgentActionOutputParser {
    * @returns An AgentAction or AgentFinish object.
    */
   async parse(text: string): Promise<AgentAction | AgentFinish> {
+    const isJSON = (text: string) => {
+      try {
+        JSON.parse(text);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
     if (text.includes("</tool>")) {
       const [tool, toolInput] = text.split("</tool>");
       const _tool = tool.split("<tool>")[1];
-      const _toolInput = toolInput.split("<tool_input>")[1];
+      const toolInputValue = toolInput.split("<tool_input>")[1];
+      const _toolInput = isJSON(toolInputValue)
+        ? JSON.parse(toolInputValue)
+        : toolInputValue;
       return { tool: _tool, toolInput: _toolInput, log: text };
     } else if (text.includes("<final_answer>")) {
       const [, answer] = text.split("<final_answer>");
